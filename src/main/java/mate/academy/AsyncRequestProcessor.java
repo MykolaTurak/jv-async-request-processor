@@ -15,14 +15,20 @@ public class AsyncRequestProcessor {
     }
 
     public CompletableFuture<UserData> processRequest(String userId) {
+        UserData cached = userDataMap.get(userId);
         if (userDataMap.containsKey(userId)) {
-            return CompletableFuture.completedFuture(userDataMap.get(userId));
+            return CompletableFuture.completedFuture(cached);
         }
 
         return CompletableFuture
                 .supplyAsync(
                     () -> new UserData(userId, "Details for" + userId), executor)
                     .thenApply(userData -> {
+                        try {
+                            Thread.sleep(400);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                         userDataMap.put(userId, userData);
                         CompletableFuture.delayedExecutor(400, TimeUnit.MILLISECONDS);
                         return userData;
