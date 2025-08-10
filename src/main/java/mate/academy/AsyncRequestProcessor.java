@@ -7,7 +7,7 @@ import java.util.concurrent.Executor;
 
 public class AsyncRequestProcessor {
     private final Executor executor;
-    public final Map<String, UserData>  userDataMap = new ConcurrentHashMap<>();
+    private final Map<String, UserData> userDataMap = new ConcurrentHashMap<>();
 
     public AsyncRequestProcessor(Executor executor) {
         this.executor = executor;
@@ -18,16 +18,15 @@ public class AsyncRequestProcessor {
             return CompletableFuture.completedFuture(userDataMap.get(userId));
         }
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
         return CompletableFuture.supplyAsync(
                 () -> new UserData(userId, "Details for" + userId), executor)
                 .thenApply(userData -> {
                     userDataMap.put(userId, userData);
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     return userData;
                 });
     }
